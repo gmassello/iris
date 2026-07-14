@@ -1,0 +1,10 @@
+# Docker no lee .gitignore. Sin esto, el contexto de build son 1.3 GB (.venv + node_modules)
+# que se tarean y se mandan al daemon en cada build para despues no copiarse.
+.venv/
+web/
+.git/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+bench/results.*

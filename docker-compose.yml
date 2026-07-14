@@ -1,0 +1,30 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # El VLM no puede correr dentro del contenedor: Docker sobre Apple Silicon no expone
+      # Metal, asi que aca adentro seria CPU puro. Corre en el host (`make mlx-server`) y el
+      # contenedor le habla por HTTP.
+      IRIS_MLX_URL: http://host.docker.internal:8080/v1/chat/completions
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  web:
+    build:
+      context: ./web
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy

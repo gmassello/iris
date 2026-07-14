@@ -1,0 +1,66 @@
+[project]
+name = "iris"
+version = "0.1.0"
+description = "Motor de OCR de recibos pluggable, con benchmark reproducible entre motores clasicos, VLM locales y APIs multimodales"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { file = "LICENSE" }
+dependencies = [
+    "fastapi>=0.136",
+    "pydantic>=2.13",
+    "python-multipart>=0.0.20",
+    "uvicorn[standard]>=0.40",
+    "opencv-python-headless>=4.12",
+    "numpy>=2.2",
+    "pillow>=11.0",
+    "pytesseract>=0.3.13",
+    "httpx>=0.28",
+]
+
+[project.optional-dependencies]
+doctr = ["python-doctr>=1.0", "torch>=2.6", "torchvision>=0.21"]
+claude = ["anthropic>=0.75"]
+bench = [
+    "datasets>=3.2",
+    "jiwer>=3.1",
+    "matplotlib>=3.10",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4",
+    "pytest-cov>=6.0",
+    "ruff>=0.15",
+    "ty>=0.0.1a1",
+]
+
+[build-system]
+requires = ["uv_build>=0.10,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "iris"
+module-root = "src"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "S", "ANN", "RUF"]
+ignore = ["ANN401"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "ANN"]
+# B008 desaconseja llamar funciones en defaults de argumentos, pero `File(...)` y `Query(...)`
+# en la firma son justamente como FastAPI declara sus dependencias.
+"src/iris/api.py" = ["B008"]
+# El reporte del benchmark es prosa: partir las oraciones para respetar el largo de linea
+# las volveria ilegibles en el fuente sin cambiar nada del markdown emitido.
+"bench/run.py" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# `bench` no es parte del paquete instalable (es el harness, no la libreria), pero sus metricas
+# se testean igual: sin esto, pytest no lo encuentra.
+pythonpath = ["."]

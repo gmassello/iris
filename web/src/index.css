@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+/* El resaltado de las cajas es puramente visual: en CSS cuesta cero, en estado de React
+   costaria re-renderizar cientos de <rect> en cada movimiento del mouse. */
+.box {
+  fill: rgb(59 130 246 / 0.08);
+  stroke: rgb(59 130 246 / 0.45);
+  stroke-width: 1.5;
+  cursor: pointer;
+  transition:
+    fill 0.1s,
+    stroke 0.1s;
+}
+
+.box:hover {
+  fill: rgb(59 130 246 / 0.35);
+  stroke: #2563eb;
+  stroke-width: 3;
+}

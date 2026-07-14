@@ -1,0 +1,4 @@
+# node_modules del host son binarios de macOS/arm: sin esto, el `COPY . .` los copia encima de
+# los que acaba de instalar `npm ci`, anulando esa capa y su cache.
+node_modules/
+dist/
