@@ -23,7 +23,7 @@ interface Props {
 export function BoxOverlay({ imageUrl, words, width, height }: Props) {
   return (
     <div className="relative w-full">
-      <img src={imageUrl} alt="Recibo" className="w-full rounded-lg" />
+      <img src={imageUrl} alt="Receipt" className="w-full rounded-lg" />
       <svg
         viewBox={`0 0 ${width} ${height}`}
         className="absolute inset-0 h-full w-full"

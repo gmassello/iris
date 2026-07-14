@@ -36,7 +36,7 @@ def evaluate(
         try:
             result = engine.extract(sample.image)
         except EngineError as exc:
-            print(f"\n  [{engine_name}] fallo en {index}: {exc}", file=sys.stderr)
+            print(f"\n  [{engine_name}] failed on {index}: {exc}", file=sys.stderr)
             update(report, None, sample.truth, "", sample.text)
             continue
 
@@ -53,13 +53,13 @@ def to_markdown(reports: dict[str, Report]) -> str:
     unscored = [f for f in (*SCALAR_FIELDS, "items") if f not in scored]
 
     lines = [
-        "# Benchmark de motores OCR",
+        "# OCR engine benchmark",
         "",
-        f"Dataset: CORD v2 (test split, {first.samples} recibos). Maquina: Apple Silicon.",
+        f"Dataset: CORD v2 (test split, {first.samples} receipts). Machine: Apple Silicon.",
         "",
-        "| Motor | CER | WER | CER peor | F1 macro | "
+        "| Engine | CER | WER | Worst CER | Macro F1 | "
         + " | ".join(f"F1 {f}" for f in scored)
-        + " | Latencia mediana | Fallos |",
+        + " | Median latency | Failures |",
         "|---|---|---|---|---|" + "---|" * len(scored) + "---|---|",
     ]
 
@@ -73,28 +73,29 @@ def to_markdown(reports: dict[str, Report]) -> str:
 
     lines += [
         "",
-        "CER/WER: calidad del texto crudo, mas bajo es mejor. F1: extraccion estructurada, mas alto es mejor.",
+        "CER/WER: raw text quality, lower is better. F1: structured extraction, higher is better.",
         "",
-        "**CER y WER son medianas, no medias.** En un puñado de recibos con fondo texturado, Tesseract",
-        "lee el ruido como si fuera texto y emite miles de caracteres contra un ground truth de doscientos:",
-        "un CER de 16 en un solo recibo mueve la media de los 100 de 0.42 a 0.89. La media describiria esos",
-        "tres desastres, no el comportamiento del motor. La cola no se esconde: va en la columna **CER peor**,",
-        "que es justamente donde se ve que Tesseract sin un fondo limpio no tiene piso.",
+        "**CER and WER are medians, not means.** On a handful of receipts with textured backgrounds,",
+        "Tesseract reads the noise as if it were text and emits thousands of characters against a ground",
+        "truth of two hundred: a CER of 16 on a single receipt moves the mean across the 100 from 0.42 to",
+        "0.89. The mean would describe those three disasters, not the engine's behavior. The tail is not",
+        "hidden: it goes in the **Worst CER** column, which is exactly where you see that Tesseract without",
+        "a clean background has no floor.",
         "",
-        "**Leer el CER de `mlx-vlm` con cuidado.** CER y WER comparan secuencias, y el VLM transcribe en",
-        "un orden de lectura distinto al del ground truth: agrupa por columnas (primero las descripciones,",
-        "despues los importes) mientras CORD los intercala. El contenido es correcto pero la secuencia no",
-        "coincide, y eso lo penaliza. Para este motor, el F1 por campo —que no depende del orden— es la",
-        "medida representativa. Es una limitacion de la metrica, no del modelo, y por eso el numero se",
-        "publica igual en vez de esconderlo.",
+        "**Read `mlx-vlm`'s CER with care.** CER and WER compare sequences, and the VLM transcribes in a",
+        "different reading order than the ground truth: it groups by column (descriptions first, then",
+        "amounts) while CORD interleaves them. The content is right but the sequence does not line up, and",
+        "that penalizes it. For this engine, field-level F1 —which is order-independent— is the",
+        "representative measure. It is a limitation of the metric, not of the model, and that is why the",
+        "number is published anyway instead of being hidden.",
     ]
     if unscored:
         lines += [
             "",
-            f"No se puntuan {', '.join('`' + f + '`' for f in unscored)}: **CORD no los anota**. "
-            "Incluirlos daria F1=0 para todos los motores y hundiria el macro-F1 por una limitacion "
-            "del dataset, no por una falla del motor. iris si los extrae; simplemente no hay contra "
-            "que medirlos aca.",
+            f"{', '.join('`' + f + '`' for f in unscored)} are not scored: **CORD does not annotate them**. "
+            "Including them would give F1=0 for every engine and sink the macro-F1 over a dataset "
+            "limitation, not an engine failure. iris does extract them; there is simply nothing here to "
+            "measure them against.",
         ]
     return "\n".join(lines)
 
@@ -109,11 +110,11 @@ def to_chart(reports: dict[str, Report], path: Path) -> None:
     figure, (left, right) = plt.subplots(1, 2, figsize=(11, 4))
 
     left.bar(names, [reports[n].macro_f1 for n in names], color="#4c72b0")
-    left.set_title("F1 macro (extraccion) — mas alto es mejor")
+    left.set_title("Macro F1 (extraction) — higher is better")
     left.set_ylim(0, 1)
 
     right.bar(names, [reports[n].median_latency_ms for n in names], color="#c44e52")
-    right.set_title("Latencia mediana (ms) — mas bajo es mejor")
+    right.set_title("Median latency (ms) — lower is better")
     right.set_yscale("log")
 
     figure.tight_layout()
@@ -127,14 +128,14 @@ def main() -> None:
     parser.add_argument("--split", default="test")
     args = parser.parse_args()
 
-    print(f"Cargando CORD v2 ({args.split}, limit={args.limit})...", file=sys.stderr)
+    print(f"Loading CORD v2 ({args.split}, limit={args.limit})...", file=sys.stderr)
     samples = load_samples(split=args.split, limit=args.limit)
 
     reports: dict[str, Report] = {}
     for name in [e.strip() for e in args.engines.split(",") if e.strip()]:
         started = time.perf_counter()
         reports[name] = evaluate(name, samples)
-        print(f"  [{name}] listo en {time.perf_counter() - started:.1f}s", file=sys.stderr)
+        print(f"  [{name}] done in {time.perf_counter() - started:.1f}s", file=sys.stderr)
 
     markdown = to_markdown(reports)
     (OUTPUT_DIR / "results.md").write_text(markdown + "\n")

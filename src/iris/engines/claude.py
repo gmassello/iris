@@ -37,11 +37,11 @@ class ClaudeEngine:
             import anthropic  # ty: ignore[unresolved-import]
         except ImportError as exc:
             raise EngineUnavailable(
-                "el SDK de anthropic no esta instalado. Instalalo con: uv sync --extra claude"
+                "the anthropic SDK is not installed. Install it with: uv sync --extra claude"
             ) from exc
 
         if not (os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")):
-            raise EngineUnavailable("falta ANTHROPIC_API_KEY en el entorno")
+            raise EngineUnavailable("ANTHROPIC_API_KEY is not set")
 
         self._anthropic = anthropic
         self.model = model
@@ -76,10 +76,10 @@ class ClaudeEngine:
         except self._anthropic.APIError as exc:
             # Un 429 o un timeout tienen que salir como EngineError, o cortan el benchmark
             # entero a mitad de una corrida de 100 imagenes que ya se pago.
-            raise EngineError(f"la API de Claude fallo: {exc}") from exc
+            raise EngineError(f"the Claude API failed: {exc}") from exc
 
         if response.stop_reason == "refusal":
-            raise EngineError("Claude rechazo la imagen por politica de contenido")
+            raise EngineError("Claude refused the image on content policy grounds")
 
         return OCRResult(
             engine=self.name,

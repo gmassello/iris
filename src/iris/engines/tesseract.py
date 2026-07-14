@@ -35,7 +35,7 @@ class TesseractEngine:
                 output_type=Output.DICT,
             )
         except pytesseract.TesseractError as exc:
-            raise EngineError(f"tesseract fallo: {exc}") from exc
+            raise EngineError(f"tesseract failed: {exc}") from exc
 
         layout_words, words = _words_from_tsv(data, matrix)
         return result_from_words(self.name, words, image, started, layout_words=layout_words)

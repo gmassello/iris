@@ -25,7 +25,7 @@ class DocTREngine:
             from doctr.models import ocr_predictor
         except ImportError as exc:
             raise EngineUnavailable(
-                "docTR no esta instalado. Instalalo con: uv sync --extra doctr"
+                "docTR is not installed. Install it with: uv sync --extra doctr"
             ) from exc
 
         self._predictor = ocr_predictor(pretrained=True)
@@ -40,7 +40,7 @@ class DocTREngine:
         try:
             document = self._predictor([rgb])
         except (RuntimeError, ValueError) as exc:
-            raise EngineError(f"docTR fallo: {exc}") from exc
+            raise EngineError(f"docTR failed: {exc}") from exc
 
         height, width = rgb.shape[:2]
         words = _words_from_document(document.export(), width, height)

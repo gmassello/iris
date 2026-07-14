@@ -25,9 +25,7 @@ def get_engine(name: str) -> OCREngine:
     """Instancia el motor una sola vez: cargan pesos o abren clientes HTTP, y reconstruirlos
     por request costaria segundos."""
     if name not in _ENGINES:
-        raise EngineError(
-            f"motor desconocido: {name!r}. Disponibles: {', '.join(available_engines())}"
-        )
+        raise EngineError(f"unknown engine: {name!r}. Available: {', '.join(available_engines())}")
 
     module, class_name = _ENGINES[name].split(":")
     engine: OCREngine = getattr(import_module(module), class_name)()

@@ -14,7 +14,7 @@ MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 
 app = FastAPI(
     title="iris",
-    description="OCR de recibos con motores intercambiables",
+    description="Receipt OCR with interchangeable engines",
     version="0.1.0",
 )
 
@@ -34,20 +34,20 @@ def health() -> dict[str, list[str]]:
 @app.post("/extract", response_model=OCRResult)
 async def extract(
     file: UploadFile = File(...),
-    engine: str = Query(default="tesseract", description="Motor de OCR a usar"),
+    engine: str = Query(default="tesseract", description="OCR engine to use"),
 ) -> OCRResult:
     payload = await file.read()
     if not payload:
-        raise HTTPException(status_code=400, detail="archivo vacio")
+        raise HTTPException(status_code=400, detail="empty file")
     if len(payload) > MAX_UPLOAD_BYTES:
-        raise HTTPException(status_code=413, detail="la imagen supera los 20 MB")
+        raise HTTPException(status_code=413, detail="image exceeds 20 MB")
 
     image = cv2.imdecode(np.frombuffer(payload, dtype=np.uint8), cv2.IMREAD_COLOR)
     if image is None:
-        raise HTTPException(status_code=400, detail="no se pudo decodificar la imagen")
+        raise HTTPException(status_code=400, detail="could not decode the image")
 
     if engine not in available_engines():
-        raise HTTPException(status_code=400, detail=f"motor desconocido: {engine!r}")
+        raise HTTPException(status_code=400, detail=f"unknown engine: {engine!r}")
 
     # Construir el motor tambien va al threadpool: la primera llamada a docTR importa PyTorch y
     # arma dos redes, y eso son segundos de trabajo CPU-bound. En el event loop congelaria el

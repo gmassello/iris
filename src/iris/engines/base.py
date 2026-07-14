@@ -90,5 +90,5 @@ def encode_image(image: np.ndarray, max_edge: int | None = None) -> str:
 
     ok, buffer = cv2.imencode(".jpg", image, [cv2.IMWRITE_JPEG_QUALITY, 90])
     if not ok:
-        raise EngineError("no se pudo codificar la imagen a JPEG")
+        raise EngineError("could not encode the image as JPEG")
     return base64.b64encode(buffer.tobytes()).decode()

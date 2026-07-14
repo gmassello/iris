@@ -3,7 +3,7 @@ import { BoxOverlay } from "./BoxOverlay";
 import type { OCRResult } from "./types";
 
 const money = (value: number | null) =>
-  value === null ? <span className="text-slate-400">—</span> : value.toLocaleString("es-AR");
+  value === null ? <span className="text-slate-400">—</span> : value.toLocaleString("en-US");
 
 export default function App() {
   const [engines, setEngines] = useState<string[]>([]);
@@ -17,7 +17,7 @@ export default function App() {
     fetch("/api/health")
       .then((response) => response.json())
       .then((data) => setEngines(data.engines))
-      .catch(() => setError("no se pudo contactar a la API"));
+      .catch(() => setError("could not reach the API"));
   }, []);
 
   async function upload(file: File) {
@@ -36,11 +36,11 @@ export default function App() {
       const response = await fetch(`/api/extract?engine=${engine}`, { method: "POST", body });
       if (!response.ok) {
         const detail = await response.json().catch(() => ({ detail: response.statusText }));
-        throw new Error(detail.detail ?? "fallo la extraccion");
+        throw new Error(detail.detail ?? "extraction failed");
       }
       setResult(await response.json());
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "error desconocido");
+      setError(caught instanceof Error ? caught.message : "unknown error");
     } finally {
       setLoading(false);
     }
@@ -53,15 +53,14 @@ export default function App() {
       <header className="mx-auto mb-8 max-w-6xl">
         <h1 className="text-3xl font-semibold tracking-tight">iris</h1>
         <p className="text-slate-600">
-          OCR de recibos con motores intercambiables. Pasá el mouse por una caja para resaltar la
-          palabra.
+          Receipt OCR with interchangeable engines. Hover a box to highlight the word.
         </p>
       </header>
 
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex flex-wrap items-center gap-4 rounded-lg border border-slate-200 bg-white p-4">
           <label className="flex items-center gap-2">
-            <span className="text-sm font-medium">Motor</span>
+            <span className="text-sm font-medium">Engine</span>
             <select
               value={engine}
               onChange={(event) => setEngine(event.target.value)}
@@ -85,10 +84,10 @@ export default function App() {
             className="text-sm file:mr-3 file:rounded file:border-0 file:bg-slate-900 file:px-4 file:py-1.5 file:text-white"
           />
 
-          {loading && <span className="text-sm text-slate-500">procesando…</span>}
+          {loading && <span className="text-sm text-slate-500">processing…</span>}
           {result && (
             <span className="ml-auto text-sm text-slate-500">
-              {result.engine} · {result.elapsed_ms.toFixed(0)} ms · {result.words.length} palabras
+              {result.engine} · {result.elapsed_ms.toFixed(0)} ms · {result.words.length} words
             </span>
           )}
         </div>
@@ -109,15 +108,15 @@ export default function App() {
                 height={result.image_height}
               />
             ) : imageUrl ? (
-              <img src={imageUrl} alt="Recibo" className="w-full rounded-lg" />
+              <img src={imageUrl} alt="Receipt" className="w-full rounded-lg" />
             ) : (
-              <p className="py-24 text-center text-slate-400">Subí la foto de un recibo</p>
+              <p className="py-24 text-center text-slate-400">Upload a photo of a receipt</p>
             )}
 
             {result && result.words.length === 0 && (
               <p className="mt-3 text-sm text-slate-500">
-                El motor <strong>{result.engine}</strong> devuelve el recibo ya estructurado y no
-                emite bounding boxes, así que no hay cajas que dibujar.
+                <strong>{result.engine}</strong> returns the receipt already structured and emits no
+                bounding boxes, so there is nothing to draw.
               </p>
             )}
           </div>
@@ -126,19 +125,19 @@ export default function App() {
             {receipt ? (
               <>
                 <dl className="mb-4 grid grid-cols-2 gap-2 text-sm">
-                  <dt className="text-slate-500">Comercio</dt>
+                  <dt className="text-slate-500">Merchant</dt>
                   <dd className="font-medium">{receipt.merchant ?? "—"}</dd>
-                  <dt className="text-slate-500">CUIT</dt>
+                  <dt className="text-slate-500">Tax ID</dt>
                   <dd className="font-medium">{receipt.tax_id ?? "—"}</dd>
-                  <dt className="text-slate-500">Fecha</dt>
+                  <dt className="text-slate-500">Date</dt>
                   <dd className="font-medium">{receipt.date ?? "—"}</dd>
                 </dl>
 
                 <table className="mb-4 w-full text-sm">
                   <thead className="border-b border-slate-200 text-left text-slate-500">
                     <tr>
-                      <th className="pb-1 font-medium">Ítem</th>
-                      <th className="pb-1 text-right font-medium">Importe</th>
+                      <th className="pb-1 font-medium">Item</th>
+                      <th className="pb-1 text-right font-medium">Amount</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -155,7 +154,7 @@ export default function App() {
                       <td className="pt-2 text-right tabular-nums">{money(receipt.subtotal)}</td>
                     </tr>
                     <tr>
-                      <td>Impuesto</td>
+                      <td>Tax</td>
                       <td className="text-right tabular-nums">{money(receipt.tax)}</td>
                     </tr>
                     <tr className="text-base">
@@ -166,14 +165,14 @@ export default function App() {
                 </table>
 
                 <details>
-                  <summary className="cursor-pointer text-sm text-slate-500">JSON crudo</summary>
+                  <summary className="cursor-pointer text-sm text-slate-500">Raw JSON</summary>
                   <pre className="mt-2 overflow-x-auto rounded bg-slate-900 p-3 text-xs text-slate-100">
                     {JSON.stringify(receipt, null, 2)}
                   </pre>
                 </details>
               </>
             ) : (
-              <p className="py-24 text-center text-slate-400">El recibo estructurado aparece acá</p>
+              <p className="py-24 text-center text-slate-400">The structured receipt shows up here</p>
             )}
           </div>
         </div>

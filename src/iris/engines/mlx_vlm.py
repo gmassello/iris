@@ -79,8 +79,8 @@ class MLXVLMEngine:
             response.raise_for_status()
         except httpx.HTTPError as exc:
             raise EngineError(
-                f"no se pudo hablar con mlx_vlm.server en {self.url}: {exc}. "
-                f"Levantalo en el host con: mlx_vlm.server --model {self.model} --port 8080"
+                f"could not reach mlx_vlm.server at {self.url}: {exc}. "
+                f"Start it on the host with: mlx_vlm.server --model {self.model} --port 8080"
             ) from exc
 
         try:
@@ -88,10 +88,10 @@ class MLXVLMEngine:
         except (KeyError, IndexError, ValueError) as exc:
             # Sin esto, una respuesta con otra forma escapa como KeyError y corta el benchmark
             # entero a mitad de una corrida.
-            raise EngineError(f"respuesta inesperada de mlx_vlm.server: {exc}") from exc
+            raise EngineError(f"unexpected response from mlx_vlm.server: {exc}") from exc
 
         if not content:
-            raise EngineError("el modelo devolvio una respuesta vacia")
+            raise EngineError("the model returned an empty response")
 
         lines = [line.strip() for line in content.splitlines() if line.strip()]
 
