@@ -16,7 +16,7 @@ WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 
 # Las dependencias en una capa aparte del codigo: cambiar una linea de iris no reinstala PyTorch.
-COPY pyproject.toml uv.lock README.md ./
+COPY pyproject.toml uv.lock README.md LICENSE ./
 RUN uv sync --locked --no-install-project --extra doctr
 
 COPY src/ ./src/
