@@ -21,7 +21,7 @@ jobs:
 
       # --locked falla si uv.lock quedo desactualizado respecto de pyproject.toml. Es la
       # garantia de que lo que corre en CI es exactamente lo que se resolvio localmente.
-      - run: uv sync --locked --group dev
+      - run: uv sync --locked --group dev --extra bench --extra doctr
 
       - run: uv run ruff check .
       - run: uv run ruff format --check .
